@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 kotlin {
@@ -14,7 +16,7 @@ kotlin {
 }
 
 android {
-    namespace = "${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.core"
+    namespace = "${Constants.BASE_PACKAGE}.core"
     compileSdk = Constants.COMPILE_SDK
 
     defaultConfig {
@@ -47,4 +49,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 }

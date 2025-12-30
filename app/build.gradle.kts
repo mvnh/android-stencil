@@ -1,3 +1,4 @@
+
 import com.app.buildsrc.Constants
 import com.app.buildsrc.GenerateFeatureTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -6,18 +7,20 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.baselineprofile)
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.fromTarget(Constants.JVM_VERSION.toString())
     }
 }
 
 android {
-    namespace = "${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.${Constants.APP_NAME}"
+    namespace = "${Constants.BASE_PACKAGE}.android"
     compileSdk {
         version = release(Constants.COMPILE_SDK)
     }
@@ -66,8 +69,10 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.profileinstaller)
+    "baselineProfile"(project(":baselineprofile"))
     ksp(libs.hilt.android.compiler)
-    implementation(kotlin("reflect"))
+    implementation(libs.kotlinx.collections.immutable)
 
     implementation(project(":core"))
     implementation(project(":navigation"))

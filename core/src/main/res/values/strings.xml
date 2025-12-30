@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_occurred">Error occurred</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="retry">Retry</string>
+</resources>

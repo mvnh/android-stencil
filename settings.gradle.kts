@@ -23,6 +23,7 @@ rootProject.name = "AndroidAppCleanTemplate"
 include(":app")
 include(":core")
 include(":navigation")
+include(":baselineprofile")
 
 val featuresDir = File(rootDir, "feature")
 if (featuresDir.exists() && featuresDir.isDirectory) {

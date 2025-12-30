@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -14,18 +16,19 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.navigation.NavigationDefinition
+import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
 fun AppNavBar(
     navController: NavHostController,
-    definitions: List<NavigationDefinition>
+    definitions: ImmutableSet<@JvmSuppressWildcards NavigationDefinition>
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val currentScreen = remember(currentDestination, definitions) {
         definitions.find { definition ->
             currentDestination?.hierarchy?.any { destination ->
-                destination.hasRoute(definition.entry)
+                destination.hasRoute(definition.entry::class)
             } == true
         }
     }
@@ -33,15 +36,10 @@ fun AppNavBar(
 
     if (!isBottomBarVisible) return
 
-    NavigationBar {
+    NavigationBar(modifier = Modifier.testTag("AppNavBar")) {
         definitions.forEach { definition ->
-            val (entryInstance, navBarItemParams) = remember(definition) {
-                val entry = definition.entry
-                val instance = entry.objectInstance
-                val params = definition.navBarItemParams
-                instance to params
-            }
-            if (entryInstance == null || navBarItemParams == null) return@forEach
+            val entryInstance = definition.entry
+            val navBarItemParams = definition.navBarItemParams ?: return@forEach
 
             val isSelected = definition == currentScreen
 
@@ -74,7 +72,7 @@ fun AppNavBar(
                     Text(
                         text = stringResource(id = navBarItemParams.labelResId)
                     )
-                }
+                },
             )
         }
     }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_occurred">Произошла ошибка</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+    <string name="retry">Повторить</string>
+</resources>

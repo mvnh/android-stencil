@@ -38,6 +38,7 @@
 
 -keepattributes *Annotation*, InnerClasses, Signature, EnclosingMethod
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations, KotlinMetadata
+-keepattributes SourceFile
 
 -keep @kotlinx.serialization.Serializable class * { *; }
 -keep class *$$serializer { *; }
@@ -51,10 +52,18 @@
     public static int e(...);
 }
 
--repackageclasses
+-repackageclasses 'com.app'
+-renamesourcefileattribute ''
 -allowaccessmodification
 -optimizations !code/allocation/variable
 -dontusemixedcaseclassnames
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn org.slf4j.impl.StaticLoggerBinder
+-adaptclassstrings
+-adaptresourcefilecontents **.xml,**.json
+-adaptresourcefilenames **.xml,**.json
+-overloadaggressively
+-optimizationpasses 5
+-verbose
+
+-classobfuscationdictionary proguard-dictionary.txt
+-obfuscationdictionary proguard-dictionary.txt
+-packageobfuscationdictionary proguard-dictionary.txt

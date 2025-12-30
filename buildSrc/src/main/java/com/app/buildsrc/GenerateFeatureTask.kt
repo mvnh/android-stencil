@@ -5,6 +5,36 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 
+/**
+ * A Gradle task for scaffolding a new Android feature module.
+ *
+ * This task automates the creation of a standard feature module structure,
+ * including directories, Gradle build files, AndroidManifest, and placeholder
+ * classes for a clean architecture (Data, Domain, Presentation layers),
+ * DI modules, and navigation components.
+ *
+ * It is designed to be run from the command line.
+ *
+ * ### Usage:
+ *
+ * To generate a new feature module, run the following command from the project's root directory:
+ *
+ * ```bash
+ * ./gradlew generateFeature -PfName=YourFeatureName
+ * ```
+ *
+ * To also add the feature to the bottom navigation bar, use the `addToNavBar` option:
+ *
+ * ```bash
+ * ./gradlew generateFeature -PfName=YourFeatureName --addToNavBar
+ * ```
+ *
+ * @property featureName The name of the feature to be generated. This is passed as a
+ *                       project property (`-PfName`). For example, `-PfName=Profile`.
+ * @property addToNavBar A boolean flag to indicate if the new feature should be added
+ *                       to the main application's bottom navigation bar. Passed as a
+ *                       command-line option (`--addToNavBar`). Defaults to `false`.
+ */
 abstract class GenerateFeatureTask : DefaultTask() {
     init {
         group = "buildSrc"
@@ -12,7 +42,7 @@ abstract class GenerateFeatureTask : DefaultTask() {
     }
 
     @Input
-    var featureName: String? = project.findProperty("featureName") as String?
+    var featureName: String? = project.findProperty("fName") as String?
 
     @Input
     @Option(option = "addToNavBar", description = "Should feature appear in bottom bar")
@@ -22,13 +52,14 @@ abstract class GenerateFeatureTask : DefaultTask() {
     fun generate() {
         with(project) {
             val mFeatureName = featureName
-                ?: throw IllegalArgumentException("Feature name must be provided via -PfeatureName")
+                ?: throw IllegalArgumentException("Feature name must be provided via -PfName")
             val featureNameLowercased = mFeatureName.lowercase()
             val featureNameCapitalized = mFeatureName.replaceFirstChar { it.uppercase() }
-            val moduleName = "feature-$featureNameLowercased"
             val modulePath = "${rootDir.path}/feature/$featureNameLowercased"
             val featurePackage = getFeaturePackageName(featureNameLowercased)
             val featureSrcPath = getFeatureModuleSrcPath(featureNameLowercased)
+
+            println("Generating feature module '$featureNameLowercased'...")
 
             createRootModuleFiles(modulePath, featureNameLowercased)
             createPackageStructure(featureSrcPath)
@@ -38,7 +69,7 @@ abstract class GenerateFeatureTask : DefaultTask() {
             createDiPlaceholders(featureNameCapitalized, featureSrcPath, featurePackage)
             createNavigation(featureNameCapitalized, featureSrcPath, featurePackage)
 
-            println("Feature module '$moduleName' has been generated successfully. Please sync the project.")
+            println("Feature module '$featureNameLowercased' has been generated successfully. Please sync the project.")
         }
     }
 
@@ -118,17 +149,6 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     )
                 )
             }
-            file("$domainPath/usecase/GetFeatureNameUseCase.kt").apply {
-                writeText(
-                    Templates.useCase(
-                        featureName,
-                        domainPackage
-                    )
-                )
-            }
-            file("$domainPath/model/FeatureName.kt").apply {
-                writeText(Templates.model(domainPackage))
-            }
         }
     }
 
@@ -163,7 +183,6 @@ abstract class GenerateFeatureTask : DefaultTask() {
         with(project) {
             val presentationPath = "$featureSrcPath/presentation"
             val presentationPackage = "$featurePackage.presentation"
-            val domainPackage = "$featurePackage.domain"
 
             file("$presentationPath/screen/${featureName}Screen.kt").apply {
                 writeText(
@@ -185,8 +204,7 @@ abstract class GenerateFeatureTask : DefaultTask() {
                 writeText(
                     Templates.viewModel(
                         featureName,
-                        presentationPackage,
-                        domainPackage
+                        presentationPackage
                     )
                 )
             }

@@ -8,6 +8,7 @@ import com.app.android.ui.RootScreen
 import com.app.core.ui.theme.AndroidAppCleanTemplateTheme
 import com.app.navigation.NavigationDefinition
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.collections.immutable.toImmutableSet
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AndroidAppCleanTemplateTheme {
-                RootScreen(definitions = navDefinitions)
+                RootScreen(definitions = navDefinitions.toImmutableSet())
             }
         }
     }

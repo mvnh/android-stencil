@@ -7,17 +7,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
-import com.app.feature.first.presentation.navigation.FirstGraph
+import com.app.feature.onboarding.presentation.navigation.OnboardingGraph
 import com.app.navigation.Navigable
 import com.app.navigation.NavigableGraph
 import com.app.navigation.NavigationDefinition
 import com.app.navigation.PreviousScreen
+import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    entries: Set<NavigationDefinition>,
-    startDestination: NavigableGraph = FirstGraph
+    entries: ImmutableSet<NavigationDefinition>,
+    startDestination: NavigableGraph = OnboardingGraph
 ) {
     NavHost(
         navController = navController,

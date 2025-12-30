@@ -16,7 +16,7 @@ kotlin {
 }
 
 android {
-    namespace = "${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.navigation"
+    namespace = "${Constants.BASE_PACKAGE}.navigation"
     compileSdk {
         version = release(Constants.COMPILE_SDK)
     }

@@ -1,7 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.app.feature.second">
-
-    <application>
-    </application>
-
-</manifest>

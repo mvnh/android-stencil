@@ -2,6 +2,17 @@ package com.app.buildsrc
 
 import org.gradle.internal.extensions.stdlib.capitalized
 
+/**
+ * A singleton object that provides string templates for generating various files
+ * required for a new feature module in an Android project. This includes Gradle build
+ * files, Android manifests, Kotlin source files for different layers (data, domain, presentation),
+ * navigation components, and resource files.
+ *
+ * The methods in this object typically accept a `featureName` and other relevant parameters
+ * to customize the generated file content. This utility is primarily used by custom
+ * Gradle tasks to automate the scaffolding of new features, ensuring consistency and
+ * reducing boilerplate code.
+ */
 object Templates {
     fun gitignore(): String = """
         /.gradle
@@ -16,25 +27,30 @@ object Templates {
 
     fun gradleBuild(featureName: String): String = """
         import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-        import ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.buildsrc.Constants
+        import ${Constants.BASE_PACKAGE}.buildsrc.Constants
     
         plugins {
             alias(libs.plugins.android.library)
             alias(libs.plugins.kotlin.android)
             alias(libs.plugins.kotlin.compose)
-            id("com.google.devtools.ksp")
-            id("com.google.dagger.hilt.android")
-            kotlin("plugin.serialization") version "2.2.0"
+            alias(libs.plugins.ksp)
+            alias(libs.plugins.hilt)
+            alias(libs.plugins.kotlinx.serialization)
         }
     
         kotlin {
             compilerOptions {
-                jvmTarget = JvmTarget.fromTarget("${Constants.JVM_VERSION}")
+                jvmTarget = JvmTarget.fromTarget(Constants.JVM_VERSION.toString())
             }
         }
                
         android {
-            namespace = "${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.feature.${featureName.replace("-", "_").lowercase()}"
+            namespace = "${'$'}{Constants.BASE_PACKAGE}.feature.${
+        featureName.replace(
+            "-",
+            "_"
+        ).lowercase()
+    }"
             compileSdk {
                 version = release(Constants.COMPILE_SDK)
             }
@@ -52,42 +68,40 @@ object Templates {
                     isMinifyEnabled = false
                     proguardFiles(
                         getDefaultProguardFile("proguard-android-optimize.txt"),
-                            "proguard-rules.pro"
-                        )
-                    }
-                }
-                compileOptions {
-                    sourceCompatibility = Constants.JVM_VERSION_OBJ
-                    targetCompatibility = Constants.JVM_VERSION_OBJ
-                }
-                buildFeatures {
-                    compose = true
+                        "proguard-rules.pro"
+                    )
                 }
             }
-        
-            dependencies {
-                implementation(libs.androidx.core.ktx)
-                implementation(libs.androidx.lifecycle.runtime.ktx)
-                implementation(libs.androidx.activity.compose)
-                implementation(platform(libs.androidx.compose.bom))
-                implementation(libs.androidx.compose.ui)
-                implementation(libs.androidx.compose.ui.graphics)
-                implementation(libs.androidx.compose.material3)
-                implementation(libs.androidx.navigation.compose)
-                implementation(libs.hilt.android)
-                ksp(libs.hilt.android.compiler)
-                implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
-                implementation(project(":core"))
-                implementation(project(":navigation"))
+            compileOptions {
+                sourceCompatibility = Constants.JVM_VERSION_OBJ
+                targetCompatibility = Constants.JVM_VERSION_OBJ
             }
+            buildFeatures {
+                compose = true
+            }
+        }
+    
+        dependencies {
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.lifecycle.runtime.ktx)
+            implementation(libs.androidx.activity.compose)
+            implementation(platform(libs.androidx.compose.bom))
+            implementation(libs.androidx.compose.ui)
+            implementation(libs.androidx.compose.ui.graphics)
+            implementation(libs.androidx.compose.material3)
+            implementation(libs.androidx.navigation.compose)
+            implementation(libs.hilt.android)
+            implementation(libs.hilt.navigation.compose)
+            ksp(libs.hilt.android.compiler)
+            implementation(libs.kotlinx.collections.immutable)
+            implementation(project(Constants.Modules.CORE))
+            implementation(project(Constants.Modules.NAVIGATION))
+        }
     """.trimIndent()
 
     fun androidManifest(featureName: String): String = """
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.feature.${featureName}">
-        
-            <application>
-            </application>
+            package="${Constants.BASE_PACKAGE}.feature.${featureName}">
         
         </manifest>
     """.trimIndent()
@@ -100,15 +114,10 @@ object Templates {
         package $dataPackage.repository
                 
         import $domainPackage.repository.${featureName}Repository
-        import $domainPackage.model.FeatureName
         import javax.inject.Inject
                 
         class ${featureName}RepositoryImpl @Inject constructor() : ${featureName}Repository {
             // Implement repository methods here
-            
-            override suspend fun getFeatureName(): FeatureName {
-                return FeatureName(value = "$featureName")
-            }
         }
     """.trimIndent()
 
@@ -117,62 +126,25 @@ object Templates {
         domainPackage: String
     ): String = """
         package $domainPackage.repository
-        
-        import $domainPackage.model.FeatureName
-                
+                        
         interface ${featureName}Repository {
             // Define repository methods here
-            
-            suspend fun getFeatureName(): FeatureName
         }
     """.trimIndent(
     )
-
-    fun useCase(
-        featureName: String,
-        domainPackage: String
-    ): String = """
-        package $domainPackage.usecase
-                
-        import $domainPackage.repository.${featureName}Repository
-        import javax.inject.Inject
-                
-        class GetFeatureNameUseCase @Inject constructor(
-            private val repository: ${featureName}Repository
-        ) {
-            suspend operator fun invoke(): Result<String> {
-                return try {
-                    val featureName = repository.getFeatureName()
-                    Result.success(featureName.value)
-                } catch (e: Exception) {
-                    Result.failure(e)
-                }
-            }
-        }
-    """.trimIndent()
-
-    fun model(
-        domainPackage: String
-    ): String = """
-        package $domainPackage.model
-                
-        data class FeatureName(
-            val value: String
-        )
-    """.trimIndent()
 
     fun screen(
         featureName: String,
         navigationPackage: String
     ): String = """
-        package ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.feature.${featureName.lowercase()}.presentation.screen
+        package ${Constants.BASE_PACKAGE}.feature.${featureName.lowercase()}.presentation.screen
                 
         import androidx.compose.runtime.Composable
         import androidx.compose.runtime.getValue
         import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+        import ${Constants.BASE_PACKAGE}.core.ui.screen.BaseScreen
         import androidx.lifecycle.compose.collectAsStateWithLifecycle
-        import ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.core.ui.component.BoxWithCenterText
-        import ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.feature.${featureName.lowercase()}.presentation.mvi.${featureName}ViewModel
+        import ${Constants.BASE_PACKAGE}.feature.${featureName.lowercase()}.presentation.mvi.${featureName}ViewModel
         import $navigationPackage.OnNavigateTo
                 
         @Composable
@@ -180,17 +152,11 @@ object Templates {
             onNavigateTo: OnNavigateTo,
             viewModel: ${featureName}ViewModel = hiltViewModel()
         ) {
-            // Your UI implementation here
-            
-            val state by viewModel.state.collectAsStateWithLifecycle()
-            ${featureName}Content(
-                featureName = state.featureName
-            )
-        }
-        
-        @Composable
-        private fun ${featureName}Content(featureName: String) {
-            BoxWithCenterText(text = "${'$'}featureName screen")
+            BaseScreen(
+                viewModel = viewModel
+            ) { state, onIntent ->
+                // Your screen content goes here
+            }
         }
     """.trimIndent()
 
@@ -201,18 +167,23 @@ object Templates {
         package $presentationPackage.mvi
                 
         import androidx.compose.runtime.Immutable
+        import ${Constants.BASE_PACKAGE}.core.ui.mvi.UiState
 
         object ${featureName}Contract {
                 
             @Immutable
             data class State(
-                // Define your state properties here
-                val featureName: String = ""
-            )
+                override val isLoading: Boolean = false,
+                override val error: Throwable? = null
+               // Define your state properties here
+            ) : UiState {
+                fun toggleLoading(): State = copy(isLoading = !isLoading)
+                fun setError(error: Throwable?): State = copy(error = error)
+                fun clearError(): State = copy(error = null)
+            }
                     
             sealed interface Intent {
                 // Define your intents here
-                data object GetFeatureName : Intent
             }
                     
             sealed interface Effect {
@@ -224,45 +195,32 @@ object Templates {
     fun viewModel(
         featureName: String,
         presentationPackage: String,
-        domainPackage: String
     ): String = """
         package $presentationPackage.mvi
              
         import androidx.lifecycle.viewModelScope
-        import ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.core.extension.PatternViewModel
-        import $domainPackage.usecase.GetFeatureNameUseCase
+        import ${Constants.BASE_PACKAGE}.core.ui.mvi.PatternViewModel
         import $presentationPackage.mvi.${featureName}Contract.State
         import $presentationPackage.mvi.${featureName}Contract.Intent
-        import $presentationPackage.mvi.${featureName}Contract.Intent.GetFeatureName
         import $presentationPackage.mvi.${featureName}Contract.Effect
         import dagger.hilt.android.lifecycle.HiltViewModel
+        import dagger.hilt.android.qualifiers.ApplicationContext
+        import android.content.Context
         import kotlinx.coroutines.launch
         import javax.inject.Inject
-                
+        
+        @Stable
         @HiltViewModel
         class ${featureName}ViewModel @Inject constructor(
             // Inject dependencies here if needed
-            private val getFeatureNameUseCase: GetFeatureNameUseCase
+            @ApplicationContext private val context: Context
         ) : PatternViewModel<State, Intent, Effect>(
             initialState = State()
         ) {
-            init {
-                onIntent(Intent.GetFeatureName)
-            }
-            
-            private fun getFeatureName() {
-                viewModelScope.launch {
-                    getFeatureNameUseCase().fold(
-                        onSuccess = { value -> reduce { copy(featureName = value) } },
-                        onFailure = { /* Handle error if needed */ }
-                    )
-                }
-            }
-        
-            override fun onIntent(intent: Intent) {
+            override suspend fun onIntent(intent: Intent) {
                 when (intent) {
                     // Handle intents here
-                    GetFeatureName -> getFeatureName()
+                    else -> {}
                 }
             }
         }
@@ -272,8 +230,8 @@ object Templates {
         package $packageName.presentation.navigation
         
         import kotlinx.serialization.Serializable
-        import ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.navigation.NavigableGraph
-        import ${Constants.TOP_LEVEL_DOMAIN}.${Constants.ORG_NAME}.navigation.NavigableRoute
+        import ${Constants.BASE_PACKAGE}.navigation.NavigableGraph
+        import ${Constants.BASE_PACKAGE}.navigation.NavigableRoute
     
         @Serializable
         data object ${featureName}Graph : NavigableGraph
@@ -295,7 +253,7 @@ object Templates {
         import androidx.navigation.NavGraphBuilder
         import androidx.navigation.compose.composable
         import androidx.navigation.compose.navigation
-        import com.app.feature.${featureName.lowercase()}.R
+        import ${Constants.BASE_PACKAGE}.feature.${featureName.lowercase()}.R
         import $packageName.presentation.screen.${featureName}Screen
         ${if (addToNavBar) "import $navigationPackage.NavBarItemParams".trimIndent() else ""}
         import $navigationPackage.NavigationDefinition
@@ -303,8 +261,9 @@ object Templates {
     
         class ${featureName}NavigationDefinition : NavigationDefinition {
         
-            override val entry = ${featureName}Graph::class
-            ${if (addToNavBar)
+            override val entry = ${featureName}Graph
+            ${
+        if (addToNavBar)
             """override val navBarItemParams = NavBarItemParams(
                 labelResId = R.string.${featureName.lowercase()},
                 // TODO: Replace with your order value
@@ -314,7 +273,7 @@ object Templates {
             )""" else """
             // Not added to navigation bar
             override val navBarItemParams = null"""
-            }
+    }
         
             override fun register(onNavigateTo: OnNavigateTo): NavGraphBuilder.() -> Unit = {
                 navigation<${featureName}Graph>(
