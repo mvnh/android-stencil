@@ -1,14 +1,13 @@
 package com.app.feature.example.presentation.mvi
      
-import androidx.lifecycle.viewModelScope
+import android.content.Context
+import androidx.compose.runtime.Stable
 import com.app.core.ui.mvi.PatternViewModel
-import com.app.feature.example.presentation.mvi.ExampleContract.State
-import com.app.feature.example.presentation.mvi.ExampleContract.Intent
 import com.app.feature.example.presentation.mvi.ExampleContract.Effect
+import com.app.feature.example.presentation.mvi.ExampleContract.Intent
+import com.app.feature.example.presentation.mvi.ExampleContract.State
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @Stable

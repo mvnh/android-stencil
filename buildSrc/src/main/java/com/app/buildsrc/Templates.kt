@@ -198,15 +198,14 @@ object Templates {
     ): String = """
         package $presentationPackage.mvi
              
-        import androidx.lifecycle.viewModelScope
+        import android.content.Context
+        import androidx.compose.runtime.Stable
         import ${Constants.BASE_PACKAGE}.core.ui.mvi.PatternViewModel
         import $presentationPackage.mvi.${featureName}Contract.State
         import $presentationPackage.mvi.${featureName}Contract.Intent
         import $presentationPackage.mvi.${featureName}Contract.Effect
         import dagger.hilt.android.lifecycle.HiltViewModel
         import dagger.hilt.android.qualifiers.ApplicationContext
-        import android.content.Context
-        import kotlinx.coroutines.launch
         import javax.inject.Inject
         
         @Stable
