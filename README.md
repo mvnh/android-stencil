@@ -52,10 +52,10 @@ example/
 Feel free to modify and expand upon the generated code to fit the specific needs of your feature. For example, you might want to add additional layers such as use cases in the domain layer or data sources in the data layer.
 
 ## Technologies used
-- **Kotlin**: The primary programming language for Android development.
-- **Jetpack Compose**: A modern toolkit for building native Android UIs.
-- **Jetpack Navigation**: A framework for navigating between different screens in the app.
-- **Hilt**: A dependency injection library for Android that reduces boilerplate code.
-- **MVI Architecture**: Model-View-Intent architecture pattern for managing UI state.
-- **Modular Architecture**: Separation of features into distinct modules for better maintainability and scalability.
-- **Custom Gradle Tasks**: Automated tasks to streamline feature generation and integration.
+![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=android&logoColor=white)
+![Jetpack Navigation](https://img.shields.io/badge/Jetpack%20Navigation-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Hilt](https://img.shields.io/badge/Hilt-E040FB?style=for-the-badge&logo=google&logoColor=white)
+![MVI](https://img.shields.io/badge/Architecture-MVI-FF9800?style=for-the-badge)
+![Modular](https://img.shields.io/badge/Structure-Modular-blueviolet?style=for-the-badge)
+![Gradle](https://img.shields.io/badge/Gradle_Tasks-02303A?style=for-the-badge&logo=gradle&logoColor=white)
