@@ -7,7 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
-import com.app.feature.onboarding.presentation.navigation.OnboardingGraph
+import com.app.feature.example.presentation.navigation.ExampleGraph
 import com.app.navigation.Navigable
 import com.app.navigation.NavigableGraph
 import com.app.navigation.NavigationDefinition
@@ -18,7 +18,7 @@ import kotlinx.collections.immutable.ImmutableSet
 fun AppNavHost(
     navController: NavHostController,
     entries: ImmutableSet<NavigationDefinition>,
-    startDestination: NavigableGraph = OnboardingGraph
+    startDestination: NavigableGraph = ExampleGraph
 ) {
     NavHost(
         navController = navController,
