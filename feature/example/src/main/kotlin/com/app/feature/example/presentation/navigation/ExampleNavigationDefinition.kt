@@ -3,9 +3,7 @@ package com.app.feature.example.presentation.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.app.feature.example.R
 import com.app.feature.example.presentation.screen.ExampleScreen
-
 import com.app.navigation.NavigationDefinition
 import com.app.navigation.OnNavigateTo
 

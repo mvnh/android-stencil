@@ -116,7 +116,7 @@ object Templates {
         import $domainPackage.repository.${featureName}Repository
         import javax.inject.Inject
                 
-        class ${featureName}RepositoryImpl @Inject constructor() : ${featureName}Repository {
+        internal class ${featureName}RepositoryImpl @Inject constructor() : ${featureName}Repository {
             // Implement repository methods here
         }
     """.trimIndent()
@@ -127,7 +127,7 @@ object Templates {
     ): String = """
         package $domainPackage.repository
                         
-        interface ${featureName}Repository {
+        internal interface ${featureName}Repository {
             // Define repository methods here
         }
     """.trimIndent(
@@ -169,18 +169,14 @@ object Templates {
         import androidx.compose.runtime.Immutable
         import ${Constants.BASE_PACKAGE}.core.ui.mvi.UiState
 
-        object ${featureName}Contract {
+        internal object ${featureName}Contract {
                 
             @Immutable
             data class State(
                 override val isLoading: Boolean = false,
                 override val error: Throwable? = null
                // Define your state properties here
-            ) : UiState {
-                fun toggleLoading(): State = copy(isLoading = !isLoading)
-                fun setError(error: Throwable?): State = copy(error = error)
-                fun clearError(): State = copy(error = null)
-            }
+            ) : UiState
                     
             sealed interface Intent {
                 // Define your intents here
@@ -210,7 +206,7 @@ object Templates {
         
         @Stable
         @HiltViewModel
-        class ${featureName}ViewModel @Inject constructor(
+        internal class ${featureName}ViewModel @Inject constructor(
             // Inject dependencies here if needed
             @ApplicationContext private val context: Context
         ) : PatternViewModel<State, Intent, Effect>(
@@ -236,7 +232,7 @@ object Templates {
         data object ${featureName}Graph : NavigableGraph
     
         @Serializable
-        data object ${featureName}Route : NavigableRoute
+        internal data object ${featureName}Route : NavigableRoute
         
         // Add more routes here if needed
     """.trimIndent()
@@ -308,7 +304,7 @@ object Templates {
             
             @Module
             @InstallIn(SingletonComponent::class)
-            abstract class ${featureName}DataModule {
+            internal abstract class ${featureName}DataModule {
             
                 @Binds
                 @Singleton
@@ -340,7 +336,7 @@ object Templates {
         
         @Module
         @InstallIn(SingletonComponent::class)
-        object ${featureName}NavigationModule {
+        internal object ${featureName}NavigationModule {
         
             @Provides
             @IntoSet
