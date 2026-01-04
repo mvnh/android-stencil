@@ -1,6 +1,6 @@
-
 import com.app.buildsrc.Constants
 import com.app.buildsrc.GenerateFeatureTask
+import com.app.buildsrc.RepackageProjectTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -84,3 +84,4 @@ dependencies {
 }
 
 tasks.register<GenerateFeatureTask>("generateFeature")
+tasks.register<RepackageProjectTask>("repackageProject")

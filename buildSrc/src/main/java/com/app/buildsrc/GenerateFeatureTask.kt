@@ -20,17 +20,17 @@ import org.gradle.api.tasks.options.Option
  * To generate a new feature module, run the following command from the project's root directory:
  *
  * ```bash
- * ./gradlew generateFeature -PfName=YourFeatureName
+ * ./gradlew generateFeature --featureName=YourFeatureName
  * ```
  *
  * To also add the feature to the bottom navigation bar, use the `addToNavBar` option:
  *
  * ```bash
- * ./gradlew generateFeature -PfName=YourFeatureName --addToNavBar
+ * ./gradlew generateFeature --featureName=YourFeatureName --addToNavBar
  * ```
  *
  * @property featureName The name of the feature to be generated. This is passed as a
- *                       project property (`-PfName`). For example, `-PfName=Profile`.
+ *                       project property (`-featureName`). For example, `-featureName=Profile`.
  * @property addToNavBar A boolean flag to indicate if the new feature should be added
  *                       to the main application's bottom navigation bar. Passed as a
  *                       command-line option (`--addToNavBar`). Defaults to `false`.
@@ -41,8 +41,9 @@ abstract class GenerateFeatureTask : DefaultTask() {
         description = "Generates a new feature module"
     }
 
-    @Input
-    var featureName: String? = project.findProperty("fName") as String?
+    @get:Input
+    @set:Option(option = "featureName", description = "Name of the feature to be generated")
+    var featureName: String? = null
 
     @Input
     @Option(option = "addToNavBar", description = "Should feature appear in bottom bar")
@@ -52,14 +53,15 @@ abstract class GenerateFeatureTask : DefaultTask() {
     fun generate() {
         with(project) {
             val mFeatureName = featureName
-                ?: throw IllegalArgumentException("Feature name must be provided via -PfName")
+                ?: throw IllegalArgumentException("Feature name must be provided via -featureName")
             val featureNameLowercased = mFeatureName.lowercase()
             val featureNameCapitalized = mFeatureName.replaceFirstChar { it.uppercase() }
             val modulePath = "${rootDir.path}/feature/$featureNameLowercased"
             val featurePackage = getFeaturePackageName(featureNameLowercased)
             val featureSrcPath = getFeatureModuleSrcPath(featureNameLowercased)
 
-            println("Generating feature module '$featureNameLowercased'...")
+            logger.lifecycle("Generating feature module: name=$featureNameLowercased, addToNavBar=$addToNavBar")
+            logger.info("Paths: modulePath=$modulePath, srcPath=$featureSrcPath, package=$featurePackage")
 
             createRootModuleFiles(modulePath, featureNameLowercased)
             createPackageStructure(featureSrcPath)
@@ -69,28 +71,33 @@ abstract class GenerateFeatureTask : DefaultTask() {
             createDiPlaceholders(featureNameCapitalized, featureSrcPath, featurePackage)
             createNavigation(featureNameCapitalized, featureSrcPath, featurePackage)
 
-            println("Feature module '$featureNameLowercased' has been generated successfully. Please sync the project.")
+            logger.lifecycle("Feature module generated: $featureNameLowercased. Sync the project.")
         }
     }
 
     private fun createRootModuleFiles(modulePath: String, featureName: String) {
         with(project) {
+            logger.info("Creating root module files at: $modulePath")
+
             file(modulePath).mkdirs()
 
             file("$modulePath/.gitignore").writeText(
                 Templates.gitignore()
             )
+            logger.debug("Wrote: $modulePath/.gitignore")
 
             file("$modulePath/build.gradle.kts").apply {
                 writeText(
                     Templates.gradleBuild(featureName)
                 )
             }
+            logger.debug("Wrote: $modulePath/build.gradle.kts")
 
             file("$modulePath/src/main/AndroidManifest.xml").apply {
                 parentFile.mkdirs()
                 writeText(Templates.androidManifest(featureName))
             }
+            logger.debug("Wrote: $modulePath/src/main/AndroidManifest.xml")
 
             mkdir("$modulePath/src/main/res").apply {
                 listOf(
@@ -102,6 +109,8 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     file("$modulePath/src/main/res/values/strings.xml").writeText(
                         Templates.stringsXml(featureName)
                     )
+                    logger.debug("Wrote: $modulePath/src/main/res/values/strings.xml")
+
                     if (addToNavBar) {
                         val sourceIconFile =
                             file("${rootDir.path}/app/src/main/res/drawable/outline_android_24.xml")
@@ -109,26 +118,43 @@ abstract class GenerateFeatureTask : DefaultTask() {
                             file("$modulePath/src/main/res/drawable/outline_android_24.xml")
                         if (sourceIconFile.exists()) {
                             sourceIconFile.copyTo(targetIconFile, overwrite = true)
+                            logger.debug("Copied icon to: $modulePath/src/main/res/drawable/outline_android_24.xml")
+                        } else {
+                            logger.warn("Nav bar icon source file not found: ${sourceIconFile.path}")
                         }
                     }
                 }
             }
 
             file("$modulePath/proguard-rules.pro").writeText("# Proguard rules here")
+            logger.debug("Wrote: $modulePath/proguard-rules.pro")
+
             file("$modulePath/consumer-rules.pro").writeText("# Consumer rules here")
+            logger.debug("Wrote: $modulePath/consumer-rules.pro")
         }
     }
 
     private fun createPackageStructure(srcPath: String) {
         with(project) {
+            logger.info("Creating package structure at: $srcPath")
+
             val dataPackages = listOf("model", "repository", "local", "remote", "mapper")
-            dataPackages.forEach { file("$srcPath/data/$it").mkdirs() }
+            dataPackages.forEach { pkg ->
+                file("$srcPath/data/$pkg").mkdirs()
+                logger.debug("Created dir: $srcPath/data/$pkg")
+            }
 
             val domainPackages = listOf("model", "repository", "usecase")
-            domainPackages.forEach { file("$srcPath/domain/$it").mkdirs() }
+            domainPackages.forEach { pkg ->
+                file("$srcPath/domain/$pkg").mkdirs()
+                logger.debug("Created dir: $srcPath/domain/$pkg")
+            }
 
             val presentationPackages = listOf("screen", "mvi", "component", "navigation")
-            presentationPackages.forEach { file("$srcPath/presentation/$it").mkdirs() }
+            presentationPackages.forEach { pkg ->
+                file("$srcPath/presentation/$pkg").mkdirs()
+                logger.debug("Created dir: $srcPath/presentation/$pkg")
+            }
         }
     }
 
@@ -141,7 +167,8 @@ abstract class GenerateFeatureTask : DefaultTask() {
             val domainPath = "$featureSrcPath/domain"
             val domainPackage = "$featurePackage.domain"
 
-            file("$domainPath/repository/${featureName}Repository.kt").apply {
+            val outFile = "$domainPath/repository/${featureName}Repository.kt"
+            file(outFile).apply {
                 writeText(
                     Templates.domainRepository(
                         featureName,
@@ -149,6 +176,7 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     )
                 )
             }
+            logger.debug("Wrote: $outFile")
         }
     }
 
@@ -162,7 +190,8 @@ abstract class GenerateFeatureTask : DefaultTask() {
             val dataPackage = "$featurePackage.data"
             val domainPackage = "$featurePackage.domain"
 
-            file("$dataPath/repository/${featureName}RepositoryImpl.kt").apply {
+            val outFile = "$dataPath/repository/${featureName}RepositoryImpl.kt"
+            file(outFile).apply {
                 writeText(
                     Templates.dataRepository(
                         featureName,
@@ -171,6 +200,7 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     )
                 )
             }
+            logger.debug("Wrote: $outFile")
         }
     }
 
@@ -184,7 +214,8 @@ abstract class GenerateFeatureTask : DefaultTask() {
             val presentationPath = "$featureSrcPath/presentation"
             val presentationPackage = "$featurePackage.presentation"
 
-            file("$presentationPath/screen/${featureName}Screen.kt").apply {
+            val screenFile = "$presentationPath/screen/${featureName}Screen.kt"
+            file(screenFile).apply {
                 writeText(
                     Templates.screen(
                         featureName,
@@ -192,7 +223,10 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     )
                 )
             }
-            file("$presentationPath/mvi/${featureName}Contract.kt").apply {
+            logger.debug("Wrote: $screenFile")
+
+            val contractFile = "$presentationPath/mvi/${featureName}Contract.kt"
+            file(contractFile).apply {
                 writeText(
                     Templates.mvi(
                         featureName,
@@ -200,7 +234,10 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     )
                 )
             }
-            file("$presentationPath/mvi/${featureName}ViewModel.kt").apply {
+            logger.debug("Wrote: $contractFile")
+
+            val viewModelFile = "$presentationPath/mvi/${featureName}ViewModel.kt"
+            file(viewModelFile).apply {
                 writeText(
                     Templates.viewModel(
                         featureName,
@@ -208,6 +245,7 @@ abstract class GenerateFeatureTask : DefaultTask() {
                     )
                 )
             }
+            logger.debug("Wrote: $viewModelFile")
         }
     }
 
@@ -221,17 +259,23 @@ abstract class GenerateFeatureTask : DefaultTask() {
 
             val dataDiPath = "$featureSrcPath/data/di"
             file(dataDiPath).mkdirs()
+            logger.debug("Created dir: $dataDiPath")
 
-            file("$dataDiPath/${featureName}DataModule.kt").writeText(
+            val dataModuleFile = "$dataDiPath/${featureName}DataModule.kt"
+            file(dataModuleFile).writeText(
                 Templates.dataDiModule(featureName, featurePackage)
             )
+            logger.debug("Wrote: $dataModuleFile")
 
             val presentationDiPath = "$featureSrcPath/presentation/di"
             file(presentationDiPath).mkdirs()
+            logger.debug("Created dir: $presentationDiPath")
 
-            file("$presentationDiPath/${featureName}NavigationModule.kt").writeText(
+            val navModuleFile = "$presentationDiPath/${featureName}NavigationModule.kt"
+            file(navModuleFile).writeText(
                 Templates.navigationDiModule(featureName, featurePackage, navigationPackage)
             )
+            logger.debug("Wrote: $navModuleFile")
         }
     }
 
@@ -247,14 +291,19 @@ abstract class GenerateFeatureTask : DefaultTask() {
             val navPath = "$presentationPath/navigation"
 
             file(navPath).mkdirs()
+            logger.debug("Created dir: $navPath")
 
-            file("$navPath/${featureName}Routes.kt").writeText(
+            val routesFile = "$navPath/${featureName}Routes.kt"
+            file(routesFile).writeText(
                 Templates.routes(featureName, featurePackage)
             )
+            logger.debug("Wrote: $routesFile")
 
-            file("$navPath/${featureName}NavigationDefinition.kt").writeText(
+            val navDefFile = "$navPath/${featureName}NavigationDefinition.kt"
+            file(navDefFile).writeText(
                 Templates.navDefinition(featureName, featurePackage, navigationPackage, addToNavBar)
             )
+            logger.debug("Wrote: $navDefFile")
         }
     }
 

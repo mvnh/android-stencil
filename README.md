@@ -6,9 +6,14 @@ This repository serves as a comprehensive template for building Android applicat
 
 ## How to use
 1. **Clone the repository**: Start by cloning this repository to your local machine.
+2. **Repackage the project**: Optionally, you can repackage the project to use your own domain and project name by running the following Gradle task:
+   ```
+   ./gradlew repackageProject --newPrefix="com.yourdomain" --newName=yourprojectname
+   ```
+   It will replace all occurrences of the old package name and project name with the new ones you provide. Replace `yourNewProjectName` with the desired name for your project.
 2. **Generate new feature**: Use the provided Gradle task to generate a new feature module. You can do this by running the following command in your terminal:
    ```
-   ./gradlew generateFeature -PfName=YourFeatureName
+   ./gradlew generateFeature --featureName=YourFeatureName
    ```
    Replace `YourFeatureName` with the desired name for your new feature. The feature will be created under the `feature` directory. You can also make use of additional parameter `--addToNavBar` to automatically integrate the new feature into the app's navigation bar.
 3. **Sync the project**: After generating the new feature, sync your project with Gradle files (`File > Sync Project with Gradle Files` in Android Studio) to make Gradle aware of the new module.
