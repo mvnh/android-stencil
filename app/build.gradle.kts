@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApplicationExtension
 import com.app.buildsrc.Constants
 import com.app.buildsrc.GenerateFeatureTask
 import com.app.buildsrc.RepackageProjectTask
@@ -5,7 +6,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
@@ -19,7 +19,7 @@ kotlin {
     }
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "${Constants.BASE_PACKAGE}.${Constants.APP_NAME}"
     compileSdk {
         version = release(Constants.COMPILE_SDK)
@@ -57,6 +57,8 @@ android {
         compose = true
     }
 }
+
+
 
 dependencies {
     implementation(libs.androidx.core.ktx)

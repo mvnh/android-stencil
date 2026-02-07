@@ -1,9 +1,10 @@
+
+import com.android.build.api.dsl.TestExtension
 import com.app.buildsrc.Constants
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.test)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.baselineprofile)
 }
 
@@ -13,7 +14,7 @@ kotlin {
     }
 }
 
-android {
+configure<TestExtension> {
     namespace = "${Constants.BASE_PACKAGE}.baselineprofile"
     compileSdk {
         version = release(Constants.COMPILE_SDK)
@@ -33,7 +34,6 @@ android {
     }
 
     targetProjectPath = ":app"
-
 }
 
 // This is the configuration block for the Baseline Profile plugin.

@@ -1,9 +1,9 @@
+import com.android.build.api.dsl.LibraryExtension
 import com.app.buildsrc.Constants
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
 }
@@ -14,7 +14,7 @@ kotlin {
     }
 }
 
-android {
+configure<LibraryExtension> {
     namespace = "${Constants.BASE_PACKAGE}.navigation"
     compileSdk {
         version = release(Constants.COMPILE_SDK)
